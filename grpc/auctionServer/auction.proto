@@ -1,0 +1,33 @@
+syntax = "proto3";
+option go_package = ".";
+
+import "google/protobuf/empty.proto";
+
+
+service Auction {
+   rpc Bid (Amount) returns (Ack);
+   rpc Result (google.protobuf.Empty) returns (AuctionResult);
+}
+
+enum Ack_types {
+    FAIL = 0;
+    SUCCESS = 1;
+    EXCEPTION = 2;
+}
+
+message Amount{
+    string clientId = 1; //Client id
+    int32 clock = 2; //Logical Lamport clock
+    int32 amount = 3; //Bid amount
+}
+
+message Ack{
+    int32 clock = 2; //Logical Lamport clock
+    Ack_types ack = 3;
+}
+
+message AuctionResult{
+    int32 clock = 2; //Logical Lamport clock
+    int32 result = 3;   // If the auction is over, returns the result; otherwise returns the highest current bid
+    bool isOver = 4; //Is the auction over/done?
+}
