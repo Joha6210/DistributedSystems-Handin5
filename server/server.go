@@ -38,6 +38,7 @@ type BackendServer struct {
 	isLeader  bool
 	advServer *zeroconf.Server
 	mu        sync.Mutex
+	client    *BackendClient
 }
 
 type BackendClient struct {
@@ -50,7 +51,7 @@ type BackendClient struct {
 	leaderId       string
 	isLeader       bool
 	lastLeaderSeen time.Time
-	server         BackendServer
+	server         *BackendServer
 }
 
 type ServerNodeInfo struct {
@@ -111,7 +112,10 @@ func main() {
 	go server.start_server()
 	go backend.start_backend()
 
-	backendClient.server = *backend
+	backendClient.server = backend
+	backend.client = backendClient
+
+	time.Sleep(200 * time.Millisecond)
 
 	backendClient.startPeerDiscovery() //Run in background to discover new server nodes
 
@@ -185,8 +189,17 @@ func (b *BackendServer) start_backend() {
 }
 
 func (b *BackendServer) UpdateLeaderStatus(isLeader bool) {
+	b.mu.Lock()
 	b.isLeader = isLeader
-	go b.startAdvertising()
+	adv := b.advServer
+	b.mu.Unlock()
+
+	adv.SetText([]string{
+		"nodeID=" + b.id,
+		"isLeader=" + fmt.Sprintf("%t", b.isLeader),
+	})
+	log.Printf("[Node %s] Updated leader TXT to %t", b.id, b.isLeader)
+
 }
 
 // startAdvertising registers zeroconf and keeps a reference
@@ -209,6 +222,7 @@ func (b *BackendServer) startAdvertising() {
 	if err != nil {
 		log.Fatalf("Failed to advertise node %s: %v", b.id, err)
 	}
+
 	b.mu.Lock()
 	b.advServer = server
 	b.mu.Unlock()
@@ -258,7 +272,7 @@ func (c *BackendClient) startPeerDiscovery() {
 					c.leader = nil
 					c.leaderId = ""
 					c.mu.Unlock()
-					c.callForElection(c.server)
+					c.callForElection()
 				} else {
 					c.mu.Lock()
 					c.lastLeaderSeen = time.Now() // update heartbeat
@@ -280,10 +294,17 @@ func (c *BackendClient) startPeerDiscovery() {
 				_, exists := c.replicas[peer.nodeId]
 				c.mu.Unlock()
 				if exists {
+					if peer.isLeader && (c.leaderId != peer.nodeId) {
+						c.mu.Lock()
+						c.leader = c.replicas[peer.nodeId]
+						c.leaderId = peer.nodeId
+						c.lastLeaderSeen = time.Now()
+						c.mu.Unlock()
+
+						log.Printf("[Node %s] Leader updated via TXT: %s", c.id, peer.nodeId)
+					}
 					continue
 				}
-
-				// Dial outside the lock (blocking call)
 				conn, err := grpc.NewClient(peer.address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 				if err != nil {
 					log.Printf("[Node %s] Failed to connect to %s: %v", c.id, peer.address, err)
@@ -293,7 +314,6 @@ func (c *BackendClient) startPeerDiscovery() {
 				c.mu.Lock()
 				c.replicas[peer.nodeId] = client
 
-				// Leader detection & heartbeat
 				if peer.isLeader {
 					if c.leader == nil {
 						c.leader = c.replicas[peer.nodeId]
@@ -354,15 +374,15 @@ func (c *BackendClient) discoverBackendNodes(discovered chan<- ServerNodeInfo) {
 	}
 }
 
-func (c *BackendClient) callForElection(backendServer BackendServer) {
+func (c *BackendClient) callForElection() {
 	c.mu.Lock()
 	nodeId, _ := strconv.Atoi(c.id)
 	clk := c.clk
 	if len(c.replicas) <= 0 {
 		log.Printf("[Node %s] No other replicas in network, I will promote myself to leader! ", c.id)
 		c.isLeader = true
-		backendServer.UpdateLeaderStatus(true)
 		c.mu.Unlock()
+		c.server.UpdateLeaderStatus(true)
 		return
 	} else {
 		// Copy replicas map to slice
@@ -373,24 +393,84 @@ func (c *BackendClient) callForElection(backendServer BackendServer) {
 		c.mu.Unlock()
 
 		log.Printf("[Node %d] Calling an election between %d nodes", c.id, len(replicas))
+		alive := false
+		var wg sync.WaitGroup
 		for replicaId, replica := range replicas {
 			if replicaId <= nodeId {
 				// Skip replicas with lower or equal IDs
 				continue
 			}
-			go func(r proto.BackendClient) {
+			wg.Add(1) //Increment the "work-to-be-done" counter
+			go func(r proto.BackendClient, rid int) {
+				defer wg.Done() //mark the job as done
 				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-				defer cancel()
-				_, err := r.Election(ctx, &proto.Message{Id: fmt.Sprintf("%d", nodeId), Clock: int32(clk)})
+				defer cancel() //Timeout
+				answer, err := r.Election(ctx, &proto.Message{Id: fmt.Sprintf("%d", nodeId), Clock: int32(clk)})
 				if err != nil {
-					log.Printf("[Node %d] Failed to call Election on replica: %v", c.id, err)
-				} else {
-					log.Printf("[Node %d] Successfully called Election on replica", c.id)
+					log.Printf("[Node %d] Failed to call Election on replica %d: %v", c.id, rid, err)
+					return
 				}
-			}(replica)
+
+				if answer != nil {
+					//The replica is alive, we can stop
+					log.Printf("[Node %d] Got an answer back from replica: %d", c.id, answer.GetId())
+					alive = true
+				}
+			}(replica, replicaId)
+		}
+
+		// Wait for all election calls to finish
+		wg.Wait()
+
+		if !alive {
+			log.Printf("[Node %s] No replicas responded, I will promote myself to leader!", c.id)
+			c.broadcastVictory()
+			c.mu.Lock()
+			c.isLeader = true
+			c.mu.Unlock()
+			c.server.UpdateLeaderStatus(true)
+		} else {
+			//A replica is alive and we can let them continue the election process
 		}
 	}
 
+}
+
+func (c *BackendClient) broadcastVictory() {
+	c.mu.Lock()
+	replicas := make(map[string]proto.BackendClient)
+	for k, v := range c.replicas {
+		replicas[k] = v
+	}
+	c.mu.Unlock()
+
+	var wg sync.WaitGroup
+
+	for replicaId, replica := range replicas {
+		if replicaId == fmt.Sprintf("%d", c.id) {
+			continue // skip self
+		}
+
+		wg.Add(1)
+		go func(r proto.BackendClient, rid string) {
+			defer wg.Done()
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+
+			_, err := r.Victory(ctx, &proto.Message{
+				Id:    fmt.Sprintf("%d", c.id),
+				Clock: int32(c.clk),
+			})
+			if err != nil {
+				log.Printf("[Node %d] Failed to send Victory to replica %s: %v", c.id, rid, err)
+			} else {
+				log.Printf("[Node %d] Successfully sent Victory to replica %s", c.id, rid)
+			}
+		}(replica, replicaId)
+	}
+
+	wg.Wait()
+	log.Printf("[Node %d] Victory broadcast complete", c.id)
 }
 
 func (b *BackendServer) Ping(ctx context.Context, empty *emptypb.Empty) (*proto.Answer, error) {
@@ -400,6 +480,6 @@ func (b *BackendServer) Ping(ctx context.Context, empty *emptypb.Empty) (*proto.
 }
 
 func (b *BackendServer) Election(ctx context.Context, msg *proto.Message) (*proto.Answer, error) {
-
-	return nil, nil
+	go b.client.callForElection()                            //Start our own election process
+	return &proto.Answer{Id: b.id, Clock: int32(b.clk)}, nil //Return ok to node calling for election
 }
