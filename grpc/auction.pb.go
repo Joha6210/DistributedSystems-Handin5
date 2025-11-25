@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v6.32.1
-// source: auction.proto
+// source: grpc/auctionServer/auction.proto
 
 package __
 
@@ -55,11 +55,11 @@ func (x AckTypes) String() string {
 }
 
 func (AckTypes) Descriptor() protoreflect.EnumDescriptor {
-	return file_auction_proto_enumTypes[0].Descriptor()
+	return file_grpc_auctionServer_auction_proto_enumTypes[0].Descriptor()
 }
 
 func (AckTypes) Type() protoreflect.EnumType {
-	return &file_auction_proto_enumTypes[0]
+	return &file_grpc_auctionServer_auction_proto_enumTypes[0]
 }
 
 func (x AckTypes) Number() protoreflect.EnumNumber {
@@ -68,7 +68,7 @@ func (x AckTypes) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AckTypes.Descriptor instead.
 func (AckTypes) EnumDescriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{0}
+	return file_grpc_auctionServer_auction_proto_rawDescGZIP(), []int{0}
 }
 
 type Amount struct {
@@ -82,7 +82,7 @@ type Amount struct {
 
 func (x *Amount) Reset() {
 	*x = Amount{}
-	mi := &file_auction_proto_msgTypes[0]
+	mi := &file_grpc_auctionServer_auction_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +94,7 @@ func (x *Amount) String() string {
 func (*Amount) ProtoMessage() {}
 
 func (x *Amount) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[0]
+	mi := &file_grpc_auctionServer_auction_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +107,7 @@ func (x *Amount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Amount.ProtoReflect.Descriptor instead.
 func (*Amount) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{0}
+	return file_grpc_auctionServer_auction_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Amount) GetClientId() string {
@@ -134,14 +134,14 @@ func (x *Amount) GetAmount() int32 {
 type Ack struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Clock         int32                  `protobuf:"varint,2,opt,name=clock,proto3" json:"clock,omitempty"` //Logical Lamport clock
-	Ack           AckTypes               `protobuf:"varint,3,opt,name=ack,proto3,enum=AckTypes" json:"ack,omitempty"`
+	Ack           AckTypes               `protobuf:"varint,3,opt,name=ack,proto3,enum=main.AckTypes" json:"ack,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Ack) Reset() {
 	*x = Ack{}
-	mi := &file_auction_proto_msgTypes[1]
+	mi := &file_grpc_auctionServer_auction_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -153,7 +153,7 @@ func (x *Ack) String() string {
 func (*Ack) ProtoMessage() {}
 
 func (x *Ack) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[1]
+	mi := &file_grpc_auctionServer_auction_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -166,7 +166,7 @@ func (x *Ack) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Ack.ProtoReflect.Descriptor instead.
 func (*Ack) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{1}
+	return file_grpc_auctionServer_auction_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Ack) GetClock() int32 {
@@ -194,7 +194,7 @@ type AuctionResult struct {
 
 func (x *AuctionResult) Reset() {
 	*x = AuctionResult{}
-	mi := &file_auction_proto_msgTypes[2]
+	mi := &file_grpc_auctionServer_auction_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -206,7 +206,7 @@ func (x *AuctionResult) String() string {
 func (*AuctionResult) ProtoMessage() {}
 
 func (x *AuctionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_auction_proto_msgTypes[2]
+	mi := &file_grpc_auctionServer_auction_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -219,7 +219,7 @@ func (x *AuctionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuctionResult.ProtoReflect.Descriptor instead.
 func (*AuctionResult) Descriptor() ([]byte, []int) {
-	return file_auction_proto_rawDescGZIP(), []int{2}
+	return file_grpc_auctionServer_auction_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AuctionResult) GetClock() int32 {
@@ -243,19 +243,18 @@ func (x *AuctionResult) GetIsOver() bool {
 	return false
 }
 
-var File_auction_proto protoreflect.FileDescriptor
+var File_grpc_auctionServer_auction_proto protoreflect.FileDescriptor
 
-const file_auction_proto_rawDesc = "" +
+const file_grpc_auctionServer_auction_proto_rawDesc = "" +
 	"\n" +
-	"\rauction.proto\x1a\x1bgoogle/protobuf/empty.proto\"R\n" +
+	" grpc/auctionServer/auction.proto\x12\x04main\x1a\x1bgoogle/protobuf/empty.proto\"R\n" +
 	"\x06Amount\x12\x1a\n" +
 	"\bclientId\x18\x01 \x01(\tR\bclientId\x12\x14\n" +
 	"\x05clock\x18\x02 \x01(\x05R\x05clock\x12\x16\n" +
-	"\x06amount\x18\x03 \x01(\x05R\x06amount\"9\n" +
+	"\x06amount\x18\x03 \x01(\x05R\x06amount\">\n" +
 	"\x03Ack\x12\x14\n" +
-	"\x05clock\x18\x02 \x01(\x05R\x05clock\x12\x1c\n" +
-	"\x03ack\x18\x03 \x01(\x0e2\n" +
-	".Ack_typesR\x03ack\"U\n" +
+	"\x05clock\x18\x02 \x01(\x05R\x05clock\x12!\n" +
+	"\x03ack\x18\x03 \x01(\x0e2\x0f.main.Ack_typesR\x03ack\"U\n" +
 	"\rAuctionResult\x12\x14\n" +
 	"\x05clock\x18\x02 \x01(\x05R\x05clock\x12\x16\n" +
 	"\x06result\x18\x03 \x01(\x05R\x06result\x12\x16\n" +
@@ -263,38 +262,38 @@ const file_auction_proto_rawDesc = "" +
 	"\tAck_types\x12\b\n" +
 	"\x04FAIL\x10\x00\x12\v\n" +
 	"\aSUCCESS\x10\x01\x12\r\n" +
-	"\tEXCEPTION\x10\x022Q\n" +
-	"\aAuction\x12\x14\n" +
-	"\x03Bid\x12\a.Amount\x1a\x04.Ack\x120\n" +
-	"\x06Result\x12\x16.google.protobuf.Empty\x1a\x0e.AuctionResultB\x03Z\x01.b\x06proto3"
+	"\tEXCEPTION\x10\x022`\n" +
+	"\aAuction\x12\x1e\n" +
+	"\x03Bid\x12\f.main.Amount\x1a\t.main.Ack\x125\n" +
+	"\x06Result\x12\x16.google.protobuf.Empty\x1a\x13.main.AuctionResultB\x03Z\x01.b\x06proto3"
 
 var (
-	file_auction_proto_rawDescOnce sync.Once
-	file_auction_proto_rawDescData []byte
+	file_grpc_auctionServer_auction_proto_rawDescOnce sync.Once
+	file_grpc_auctionServer_auction_proto_rawDescData []byte
 )
 
-func file_auction_proto_rawDescGZIP() []byte {
-	file_auction_proto_rawDescOnce.Do(func() {
-		file_auction_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_auction_proto_rawDesc), len(file_auction_proto_rawDesc)))
+func file_grpc_auctionServer_auction_proto_rawDescGZIP() []byte {
+	file_grpc_auctionServer_auction_proto_rawDescOnce.Do(func() {
+		file_grpc_auctionServer_auction_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_grpc_auctionServer_auction_proto_rawDesc), len(file_grpc_auctionServer_auction_proto_rawDesc)))
 	})
-	return file_auction_proto_rawDescData
+	return file_grpc_auctionServer_auction_proto_rawDescData
 }
 
-var file_auction_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_auction_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_auction_proto_goTypes = []any{
-	(AckTypes)(0),         // 0: Ack_types
-	(*Amount)(nil),        // 1: Amount
-	(*Ack)(nil),           // 2: Ack
-	(*AuctionResult)(nil), // 3: AuctionResult
+var file_grpc_auctionServer_auction_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_grpc_auctionServer_auction_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_grpc_auctionServer_auction_proto_goTypes = []any{
+	(AckTypes)(0),         // 0: main.Ack_types
+	(*Amount)(nil),        // 1: main.Amount
+	(*Ack)(nil),           // 2: main.Ack
+	(*AuctionResult)(nil), // 3: main.AuctionResult
 	(*emptypb.Empty)(nil), // 4: google.protobuf.Empty
 }
-var file_auction_proto_depIdxs = []int32{
-	0, // 0: Ack.ack:type_name -> Ack_types
-	1, // 1: Auction.Bid:input_type -> Amount
-	4, // 2: Auction.Result:input_type -> google.protobuf.Empty
-	2, // 3: Auction.Bid:output_type -> Ack
-	3, // 4: Auction.Result:output_type -> AuctionResult
+var file_grpc_auctionServer_auction_proto_depIdxs = []int32{
+	0, // 0: main.Ack.ack:type_name -> main.Ack_types
+	1, // 1: main.Auction.Bid:input_type -> main.Amount
+	4, // 2: main.Auction.Result:input_type -> google.protobuf.Empty
+	2, // 3: main.Auction.Bid:output_type -> main.Ack
+	3, // 4: main.Auction.Result:output_type -> main.AuctionResult
 	3, // [3:5] is the sub-list for method output_type
 	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -302,27 +301,27 @@ var file_auction_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_auction_proto_init() }
-func file_auction_proto_init() {
-	if File_auction_proto != nil {
+func init() { file_grpc_auctionServer_auction_proto_init() }
+func file_grpc_auctionServer_auction_proto_init() {
+	if File_grpc_auctionServer_auction_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auction_proto_rawDesc), len(file_auction_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_grpc_auctionServer_auction_proto_rawDesc), len(file_grpc_auctionServer_auction_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_auction_proto_goTypes,
-		DependencyIndexes: file_auction_proto_depIdxs,
-		EnumInfos:         file_auction_proto_enumTypes,
-		MessageInfos:      file_auction_proto_msgTypes,
+		GoTypes:           file_grpc_auctionServer_auction_proto_goTypes,
+		DependencyIndexes: file_grpc_auctionServer_auction_proto_depIdxs,
+		EnumInfos:         file_grpc_auctionServer_auction_proto_enumTypes,
+		MessageInfos:      file_grpc_auctionServer_auction_proto_msgTypes,
 	}.Build()
-	File_auction_proto = out.File
-	file_auction_proto_goTypes = nil
-	file_auction_proto_depIdxs = nil
+	File_grpc_auctionServer_auction_proto = out.File
+	file_grpc_auctionServer_auction_proto_goTypes = nil
+	file_grpc_auctionServer_auction_proto_depIdxs = nil
 }

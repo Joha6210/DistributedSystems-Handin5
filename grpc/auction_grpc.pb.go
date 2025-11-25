@@ -2,13 +2,12 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.32.1
-// source: auction.proto
+// source: grpc/auctionServer/auction.proto
 
 package __
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -21,8 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Auction_Bid_FullMethodName    = "/Auction/Bid"
-	Auction_Result_FullMethodName = "/Auction/Result"
+	Auction_Bid_FullMethodName    = "/main.Auction/Bid"
+	Auction_Result_FullMethodName = "/main.Auction/Result"
 )
 
 // AuctionClient is the client API for Auction service.
@@ -144,7 +143,7 @@ func _Auction_Result_Handler(srv interface{}, ctx context.Context, dec func(inte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Auction_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Auction",
+	ServiceName: "main.Auction",
 	HandlerType: (*AuctionServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -157,5 +156,5 @@ var Auction_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auction.proto",
+	Metadata: "grpc/auctionServer/auction.proto",
 }

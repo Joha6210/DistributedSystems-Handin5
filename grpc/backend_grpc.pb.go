@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.32.1
-// source: backend/backend.proto
+// source: grpc/backend/backend.proto
 
 package __
 
@@ -20,9 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Backend_TryToUpdateBid_FullMethodName = "/Backend/TryToUpdateBid"
-	Backend_Election_FullMethodName       = "/Backend/Election"
-	Backend_Victory_FullMethodName        = "/Backend/Victory"
+	Backend_TryToUpdateBid_FullMethodName = "/main.Backend/TryToUpdateBid"
+	Backend_Election_FullMethodName       = "/main.Backend/Election"
+	Backend_Victory_FullMethodName        = "/main.Backend/Victory"
+	Backend_Ping_FullMethodName           = "/main.Backend/Ping"
 )
 
 // BackendClient is the client API for Backend service.
@@ -30,8 +31,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BackendClient interface {
 	TryToUpdateBid(ctx context.Context, in *Amount, opts ...grpc.CallOption) (*Ack, error)
-	Election(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Answer, error)
-	Victory(ctx context.Context, in *VictoryMessage, opts ...grpc.CallOption) (*Ack, error)
+	Election(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Answer, error)
+	Victory(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Ack, error)
+	Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Answer, error)
 }
 
 type backendClient struct {
@@ -52,7 +54,7 @@ func (c *backendClient) TryToUpdateBid(ctx context.Context, in *Amount, opts ...
 	return out, nil
 }
 
-func (c *backendClient) Election(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Answer, error) {
+func (c *backendClient) Election(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Answer, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Answer)
 	err := c.cc.Invoke(ctx, Backend_Election_FullMethodName, in, out, cOpts...)
@@ -62,10 +64,20 @@ func (c *backendClient) Election(ctx context.Context, in *emptypb.Empty, opts ..
 	return out, nil
 }
 
-func (c *backendClient) Victory(ctx context.Context, in *VictoryMessage, opts ...grpc.CallOption) (*Ack, error) {
+func (c *backendClient) Victory(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Ack, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Ack)
 	err := c.cc.Invoke(ctx, Backend_Victory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Answer, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Answer)
+	err := c.cc.Invoke(ctx, Backend_Ping_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +89,9 @@ func (c *backendClient) Victory(ctx context.Context, in *VictoryMessage, opts ..
 // for forward compatibility.
 type BackendServer interface {
 	TryToUpdateBid(context.Context, *Amount) (*Ack, error)
-	Election(context.Context, *emptypb.Empty) (*Answer, error)
-	Victory(context.Context, *VictoryMessage) (*Ack, error)
+	Election(context.Context, *Message) (*Answer, error)
+	Victory(context.Context, *Message) (*Ack, error)
+	Ping(context.Context, *emptypb.Empty) (*Answer, error)
 	mustEmbedUnimplementedBackendServer()
 }
 
@@ -92,11 +105,14 @@ type UnimplementedBackendServer struct{}
 func (UnimplementedBackendServer) TryToUpdateBid(context.Context, *Amount) (*Ack, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TryToUpdateBid not implemented")
 }
-func (UnimplementedBackendServer) Election(context.Context, *emptypb.Empty) (*Answer, error) {
+func (UnimplementedBackendServer) Election(context.Context, *Message) (*Answer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Election not implemented")
 }
-func (UnimplementedBackendServer) Victory(context.Context, *VictoryMessage) (*Ack, error) {
+func (UnimplementedBackendServer) Victory(context.Context, *Message) (*Ack, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Victory not implemented")
+}
+func (UnimplementedBackendServer) Ping(context.Context, *emptypb.Empty) (*Answer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedBackendServer) mustEmbedUnimplementedBackendServer() {}
 func (UnimplementedBackendServer) testEmbeddedByValue()                 {}
@@ -138,7 +154,7 @@ func _Backend_TryToUpdateBid_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _Backend_Election_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(Message)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -150,13 +166,13 @@ func _Backend_Election_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: Backend_Election_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).Election(ctx, req.(*emptypb.Empty))
+		return srv.(BackendServer).Election(ctx, req.(*Message))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Backend_Victory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VictoryMessage)
+	in := new(Message)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -168,7 +184,25 @@ func _Backend_Victory_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: Backend_Victory_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BackendServer).Victory(ctx, req.(*VictoryMessage))
+		return srv.(BackendServer).Victory(ctx, req.(*Message))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Backend_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).Ping(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -177,7 +211,7 @@ func _Backend_Victory_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Backend_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Backend",
+	ServiceName: "main.Backend",
 	HandlerType: (*BackendServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -192,7 +226,11 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Victory",
 			Handler:    _Backend_Victory_Handler,
 		},
+		{
+			MethodName: "Ping",
+			Handler:    _Backend_Ping_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "backend/backend.proto",
+	Metadata: "grpc/backend/backend.proto",
 }
